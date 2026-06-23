@@ -15,8 +15,11 @@ database_url = os.environ.get("DATABASE_URL")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 
-# populated in T02 once models exist
-target_metadata = None
+import sys, pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
+
+from db.models import SQLModel  # noqa: F401 — registers all table metadata
+target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

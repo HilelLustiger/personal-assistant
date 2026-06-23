@@ -30,8 +30,8 @@ status: in-progress
 
 | Task | Component | Agent | Status |
 |---|---|---|---|
-| T01 | Environment & Project Scaffold | devops | in-progress |
-| T02 | tasks-service/db — models + migration | coder | pending |
+| T01 | Environment & Project Scaffold | devops | complete |
+| T02 | tasks-service/db — models + migration | coder | in-progress |
 | T03 | tasks-service/domain — business logic | coder | pending |
 | T04 | tasks-service/api — REST API layer | coder | pending |
 | T05 | Orchestrator startup spike | coder | pending |

@@ -25,6 +25,7 @@ work_order:
     - id: T01
       assigned_to: devops
       component: Environment & Project Scaffold
+      status: complete
       description: >
         Set up the project scaffold, local development environment, and GitHub repository.
         Create the top-level directory structure (tasks-service/, orchestrator/,
