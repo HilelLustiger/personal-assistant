@@ -124,6 +124,7 @@ work_order:
     - id: T04
       assigned_to: coder
       component: tasks-service/api — REST API layer
+      status: complete
       description: >
         Implement all FastAPI routers in tasks-service/api/ using the interface contracts
         from the Agreement Doc. One router file per domain: goals.py, habits.py,
