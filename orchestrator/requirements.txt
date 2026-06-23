@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+langgraph
+langgraph-checkpoint-postgres
+litellm
+python-telegram-bot[webhooks]
+httpx
+pytest

@@ -1,0 +1,7 @@
+fastapi
+sqlmodel
+psycopg[binary]
+alembic
+uvicorn
+pytest
+httpx
