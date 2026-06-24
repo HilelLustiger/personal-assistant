@@ -159,6 +159,7 @@ work_order:
     - id: T05
       assigned_to: coder
       component: Orchestrator startup spike
+      status: complete
       description: >
         Prove that python-telegram-bot v20, FastAPI, and the LangGraph Postgres
         checkpointer can all run together in a single Uvicorn process before any
@@ -250,7 +251,7 @@ work_order:
       assigned_to: coder
       component: orchestrator/telegram — Telegram bot handlers
       description: >
-        Wire the LangGraph agent to Telegram in orchestrator/telegram/.
+        Wire the LangGraph agent to Telegram in orchestrator/bot/.
         handlers.py: handle incoming text messages — pass to agent/graph.py with
         the Telegram chat_id as thread_id, send the agent's reply via sender.py.
         buttons.py: handle inline button callback queries (EOD habit Yes/No) —

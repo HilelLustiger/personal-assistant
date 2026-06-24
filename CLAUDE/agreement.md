@@ -31,13 +31,13 @@ Status: agreed
 **orchestrator internal structure**
 - `agent/` — LangGraph graph: state schema, nodes, edges
 - `tools/` — wraps tasks-service HTTP calls as LangGraph tools (one file per service)
-- `telegram/` — Telegram handlers (incoming messages, command handlers, inline button callbacks, message sending)
+- `bot/` — Telegram handlers (incoming messages, command handlers, inline button callbacks, message sending)
 - `proactive/` — HTTP endpoints for cron-job.org; receives scheduled trigger, queries tasks-service, fires Telegram message
 
 **Data flow — reactive (user sends a message)**
 ```
 User → Telegram
-  → orchestrator/telegram/handlers.py   (receives message)
+  → orchestrator/bot/handlers.py   (receives message)
     → orchestrator/agent/graph.py        (LangGraph decides what to do)
       → orchestrator/tools/tasks_tool.py (calls tasks-service REST API)
         → tasks-service/api/             (reads/writes DB)
@@ -67,7 +67,7 @@ cron-job.org (every minute) → orchestrator/proactive/triggers.py  (POST /trigg
 ```
 User taps Yes/No button
   → Telegram sends callback query
-    → orchestrator/telegram/buttons.py   (receives callback)
+    → orchestrator/bot/buttons.py   (receives callback)
       → orchestrator/agent/graph.py      (dispatched as agent event — LangGraph state updated)
         → orchestrator/tools/tasks_tool.py (POST /habits/{id}/log or no-op)
       ← agent formats confirmation reply
@@ -239,7 +239,7 @@ Status: agreed
 - Step 3b — Orchestrator startup spike: FastAPI app with lifespan, Telegram Application initialized inside it, bot replies "pong" to any message, `POST /trigger/test` returns 200, LangGraph Postgres checkpointer connects and persists a test state across two calls. Milestone: PTB + FastAPI + LangGraph checkpointer all work in one process. If this fails, resolve before Step 4.
 - Step 4  — `orchestrator/tools/tasks_tool.py` — wrap tasks-service endpoints as LangGraph tool definitions using the agreed POST/GET shapes.
 - Step 5  — `orchestrator/agent/` — LangGraph graph wiring tools together. LangGraph state persistence (checkpointing) proven here. Milestone: send a message programmatically, agent calls correct tool, response returns.
-- Step 6  — `orchestrator/telegram/` — connect agent to Telegram bot. Milestone: "add task: buy milk" via Telegram → task in Postgres.
+- Step 6  — `orchestrator/bot/` — connect agent to Telegram bot. Milestone: "add task: buy milk" via Telegram → task in Postgres.
 - Step 7  — `orchestrator/proactive/` — morning + EOD trigger endpoints + `/trigger/check-reminders` (fires due reminders, marks them fired). All tested with curl first, then wired to cron-job.org. `/trigger/check-reminders` runs every minute on cron-job.org.
 
 **Risk-first flag**
@@ -356,7 +356,7 @@ None.
 The data model defines `goals` with its own table, a self-referential FK, and status logic. The domain layer explicitly calls out "goal progress aggregate" as one of its responsibilities. But `api/` lists only `tasks.py`, `habits.py`, `reminders.py` — no `goals.py`. Same for `domain/`. If the manager builds from this file tree, nobody writes the goals layer. This is a structural gap, not a detail.
 
 **2. Telegram-sending responsibility is split between two modules with no owner.**
-`orchestrator/telegram/` sends replies to user messages. `orchestrator/proactive/` also sends Telegram messages (check-ins, habit buttons). There is no shared Telegram-sending component. This will cause duplication: formatting, error handling, and rate-limiting logic written twice in different styles with different failure modes. Who owns "send a message to Telegram"?
+`orchestrator/bot/` sends replies to user messages. `orchestrator/proactive/` also sends Telegram messages (check-ins, habit buttons). There is no shared Telegram-sending component. This will cause duplication: formatting, error handling, and rate-limiting logic written twice in different styles with different failure modes. Who owns "send a message to Telegram"?
 
 **3. No answer to: where does the orchestrator get the user's Telegram chat ID for proactive messages?**
 Proactive messages are initiated by the orchestrator — no inbound Telegram event triggers them. The orchestrator needs to know *where* to send. This is a single-user system, so the answer is probably a `TELEGRAM_CHAT_ID` env var — but it is not mentioned anywhere in the architecture. If it is missing from the credentials list and the directory structure, it will be discovered at Step 7 and require backtracking.
@@ -541,7 +541,7 @@ Return to architect.
 #### Issues Found
 
 **1. `buttons.py` has no defined path to tasks-service — the inline button callback flow is architecturally incomplete.**
-The EOD check-in sends Yes/No inline buttons. When the user taps "Yes", Telegram sends a callback query handled by `orchestrator/telegram/buttons.py`. That handler must log the habit completion — but `buttons.py` is only described as importing `sender.py`. It has no defined path to tasks-service: it could call tasks-service directly (via httpx), call through the tools layer, or dispatch through the LangGraph agent. These three options have meaningfully different consequences: a direct httpx call bypasses the agent and LangGraph state does not reflect the check-in was resolved; routing through the agent keeps state consistent but adds complexity. The architecture says nothing about which path button callbacks take.
+The EOD check-in sends Yes/No inline buttons. When the user taps "Yes", Telegram sends a callback query handled by `orchestrator/bot/buttons.py`. That handler must log the habit completion — but `buttons.py` is only described as importing `sender.py`. It has no defined path to tasks-service: it could call tasks-service directly (via httpx), call through the tools layer, or dispatch through the LangGraph agent. These three options have meaningfully different consequences: a direct httpx call bypasses the agent and LangGraph state does not reflect the check-in was resolved; routing through the agent keeps state consistent but adds complexity. The architecture says nothing about which path button callbacks take.
 
 #### Open Questions Added
 

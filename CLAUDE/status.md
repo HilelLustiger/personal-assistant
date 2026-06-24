@@ -34,7 +34,7 @@ status: in-progress
 | T02 | tasks-service/db — models + migration | coder | complete |
 | T03 | tasks-service/domain — business logic | coder | complete |
 | T04 | tasks-service/api — REST API layer | coder | complete |
-| T05 | Orchestrator startup spike | coder | pending |
+| T05 | Orchestrator startup spike | coder | complete |
 | T06 | orchestrator/tools — LangGraph tools | coder | pending |
 | T07 | orchestrator/agent — LangGraph graph | coder | pending |
 | T08 | orchestrator/telegram — bot handlers | coder | pending |
