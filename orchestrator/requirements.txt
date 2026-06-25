@@ -6,3 +6,5 @@ litellm
 python-telegram-bot[webhooks]
 httpx
 pytest
+pytest-asyncio
+respx
