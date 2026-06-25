@@ -194,6 +194,7 @@ work_order:
     - id: T06
       assigned_to: coder
       component: orchestrator/tools — LangGraph tool definitions
+      status: complete
       description: >
         Implement orchestrator/tools/tasks_tool.py — all LangGraph tool definitions
         that wrap the tasks-service REST API. Define one tool per logical operation

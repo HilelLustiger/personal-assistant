@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from langgraph.checkpoint.base import empty_checkpoint
 from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
@@ -33,12 +34,20 @@ async def lifespan(app: FastAPI):
         await telegram_app.updater.start_polling()
 
     app.state.telegram_app = telegram_app
-    yield
 
-    if telegram_app is not None:
-        await telegram_app.updater.stop()
-        await telegram_app.stop()
-        await telegram_app.shutdown()
+    from agent.graph import build_graph
+
+    conn_string = _pg_conn_string(DATABASE_URL)
+    async with AsyncPostgresSaver.from_conn_string(conn_string) as checkpointer:
+        await checkpointer.setup()
+        app.state.agent_graph = build_graph(checkpointer)
+        try:
+            yield
+        finally:
+            if telegram_app is not None:
+                await telegram_app.updater.stop()
+                await telegram_app.stop()
+                await telegram_app.shutdown()
 
 
 app = FastAPI(title="Orchestrator", lifespan=lifespan)

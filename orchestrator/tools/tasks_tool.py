@@ -357,3 +357,27 @@ async def fire_reminder(reminder_id: str) -> dict:
         response = await client.post(f"/reminders/{reminder_id}/fire", json={})
         response.raise_for_status()
         return response.json()
+
+
+ALL_TOOLS = [
+    list_goals,
+    create_goal,
+    update_goal,
+    delete_goal,
+    get_goal_progress,
+    list_tasks,
+    create_task,
+    update_task,
+    delete_task,
+    complete_task,
+    list_habits,
+    create_habit,
+    update_habit,
+    delete_habit,
+    log_habit,
+    list_reminders,
+    create_reminder,
+    update_reminder,
+    delete_reminder,
+    fire_reminder,
+]
