@@ -8,7 +8,7 @@ from sqlmodel import Session, SQLModel, select
 
 from db.models import Habit, HabitLog
 from db.session import get_session
-from domain.habits import completions_in_range, find_week_bounds, needs_log_in_range
+from domain.habits import count_completions_in_range, find_week_bounds, is_habit_hit_in_range
 
 router = APIRouter(prefix="/habits", tags=["habits"])
 
@@ -50,8 +50,8 @@ def list_habits(
     results = []
     for habit in habits:
         logs = session.exec(select(HabitLog).where(HabitLog.habit_id == habit.id)).all()
-        count = completions_in_range(habit.id, logs, week_start, week_end)
-        needs_log = needs_log_in_range(habit, logs, week_start, week_end)
+        count = count_completions_in_range(habit.id, logs, week_start, week_end)
+        needs_log = is_habit_hit_in_range(habit, logs, week_start, week_end)
         habit_dict = habit.model_dump()
         habit_dict["needs_log_today"] = needs_log
         habit_dict["completions_this_week"] = count

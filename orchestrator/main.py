@@ -53,6 +53,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Orchestrator", lifespan=lifespan)
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.post("/trigger/test")
 def trigger_test():
     """Prove that FastAPI + LangGraph Postgres checkpointer work together.

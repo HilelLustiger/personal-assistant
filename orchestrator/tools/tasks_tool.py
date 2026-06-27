@@ -222,7 +222,7 @@ async def create_habit(
     start_date: str,
 ) -> dict:
     """Create a new recurring habit linked to a goal.
-    frequency_unit is 'day' or 'week'; frequency_target is how many times per unit.
+    frequency_unit is 'daily' or 'weekly'; frequency_target is how many times per unit.
     start_date is YYYY-MM-DD. Returns the created habit with its id."""
     payload = {
         "name": name,
@@ -246,7 +246,7 @@ async def update_habit(
     active: Optional[bool] = None,
 ) -> dict:
     """Update an existing habit's name, frequency, or active status.
-    Set active=False to pause a habit without deleting it.
+    frequency_unit is 'daily' or 'weekly'. Set active=False to pause a habit without deleting it.
     Provide only the fields to change; unmentioned fields stay the same."""
     payload: dict = {}
     if name is not None:

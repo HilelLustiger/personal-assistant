@@ -1,4 +1,4 @@
-"""LangGraph node functions: call_model, call_tools, format_response."""
+"""LangGraph node functions: call_model, call_tools."""
 import json
 import os
 
@@ -7,7 +7,7 @@ from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
 from agent.state import ConversationState
-from tools.tasks_tool import ALL_TOOLS
+from tools import ALL_TOOLS
 
 _MODEL = os.environ.get("GROQ_MODEL", "groq/llama-3.3-70b-versatile")
 _SYSTEM_PROMPT = (
@@ -88,7 +88,3 @@ async def call_tools(state: ConversationState) -> dict:
             ToolMessage(content=content, tool_call_id=tool_call["id"])
         )
     return {"messages": tool_messages}
-
-
-def format_response(state: ConversationState) -> dict:
-    return {"reply": str(state["messages"][-1].content)}

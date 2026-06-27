@@ -16,10 +16,10 @@ from agent.graph import build_graph
 from agent.state import ConversationState
 from tools.tasks_tool import TASKS_SERVICE_URL
 
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _make_tool_call_response(tool_name: str, tool_args: dict, call_id: str = "call_001"):
-    """Build a mock LiteLLM response that asks the agent to call one tool."""
     tc = MagicMock()
     tc.id = call_id
     tc.function.name = tool_name
@@ -38,7 +38,6 @@ def _make_tool_call_response(tool_name: str, tool_args: dict, call_id: str = "ca
 
 
 def _make_text_response(text: str):
-    """Build a mock LiteLLM response that returns plain text (no tool calls)."""
     msg = MagicMock()
     msg.content = text
     msg.tool_calls = None
@@ -56,6 +55,7 @@ def _make_config(thread_id: str) -> dict:
 
 
 BASE = TASKS_SERVICE_URL
+
 
 # ── AC: 'add task: buy milk' → POST /tasks ────────────────────────────────────
 
@@ -82,7 +82,7 @@ async def test_create_task_calls_tasks_service():
             route = mock.post("/tasks").mock(return_value=httpx.Response(201, json=task_response))
 
             result = await graph.ainvoke(
-                {"messages": [HumanMessage("add task: buy milk")], "thread_id": "test-create-task", "reply": ""},
+                {"messages": [HumanMessage("add task: buy milk")]},
                 config,
             )
 
@@ -90,8 +90,8 @@ async def test_create_task_calls_tasks_service():
             body = json.loads(mock.calls[0].request.content)
             assert body["title"] == "buy milk"
 
-    assert isinstance(result["reply"], str)
-    assert result["reply"] != ""
+    assert isinstance(result["messages"][-1].content, str)
+    assert result["messages"][-1].content != ""
 
 
 # ── AC: 'show my open tasks' → GET /tasks?completed=false ────────────────────
@@ -121,7 +121,7 @@ async def test_list_open_tasks_sends_correct_query():
             route = mock.get("/tasks").mock(return_value=httpx.Response(200, json=tasks_response))
 
             result = await graph.ainvoke(
-                {"messages": [HumanMessage("show my open tasks")], "thread_id": "test-list-tasks", "reply": ""},
+                {"messages": [HumanMessage("show my open tasks")]},
                 config,
             )
 
@@ -129,7 +129,7 @@ async def test_list_open_tasks_sends_correct_query():
             params = dict(mock.calls[0].request.url.params)
             assert params.get("completed") == "false"
 
-    assert "You have 1 open task" in result["reply"]
+    assert "You have 1 open task" in result["messages"][-1].content
 
 
 # ── AC: two sequential messages share state via checkpointer ─────────────────
@@ -163,13 +163,13 @@ async def test_sequential_messages_share_state():
         with respx.mock(base_url=BASE) as mock:
             mock.get("/tasks").mock(return_value=httpx.Response(200, json=tasks_response))
             await graph.ainvoke(
-                {"messages": [HumanMessage("show my open tasks")], "thread_id": "test-sequential", "reply": ""},
+                {"messages": [HumanMessage("show my open tasks")]},
                 config,
             )
 
     with patch("agent.nodes.litellm.acompletion", AsyncMock(side_effect=second_turn_effects)) as mock_llm:
         result = await graph.ainvoke(
-            {"messages": [HumanMessage("do you remember what you said?")], "thread_id": "test-sequential", "reply": ""},
+            {"messages": [HumanMessage("do you remember what you said?")]},
             config,
         )
 
@@ -177,7 +177,7 @@ async def test_sequential_messages_share_state():
     messages_sent = call_args.kwargs.get("messages") or call_args.args[0]
     roles = [m["role"] for m in messages_sent]
     assert "assistant" in roles, "prior AI turn should be in message history"
-    assert result["reply"] != ""
+    assert result["messages"][-1].content != ""
 
 
 # ── AC: agent returns formatted reply string, not raw JSON ───────────────────
@@ -204,11 +204,11 @@ async def test_reply_is_human_readable_string():
         with respx.mock(base_url=BASE) as mock:
             mock.post("/tasks").mock(return_value=httpx.Response(201, json=task_response))
             result = await graph.ainvoke(
-                {"messages": [HumanMessage("add dentist appointment")], "thread_id": "test-reply-format", "reply": ""},
+                {"messages": [HumanMessage("add dentist appointment")]},
                 config,
             )
 
-    reply = result["reply"]
+    reply = result["messages"][-1].content
     assert isinstance(reply, str)
     try:
         json.loads(reply)
@@ -244,13 +244,14 @@ async def test_complete_task_routes_to_correct_endpoint():
             route = mock.post(f"/tasks/{task_id}/complete").mock(return_value=httpx.Response(200, json=task_response))
 
             result = await graph.ainvoke(
-                {"messages": [HumanMessage(f"complete task {task_id}")], "thread_id": "test-complete", "reply": ""},
+                {"messages": [HumanMessage(f"complete task {task_id}")]},
                 config,
             )
 
             assert route.called
 
-    assert "complete" in result["reply"].lower() or "great" in result["reply"].lower()
+    content = result["messages"][-1].content
+    assert "complete" in content.lower() or "great" in content.lower()
 
 
 # ── AC: create_reminder tool works ────────────────────────────────────────────
@@ -280,10 +281,10 @@ async def test_create_reminder_calls_correct_endpoint():
             route = mock.post("/reminders").mock(return_value=httpx.Response(201, json=reminder_response))
 
             result = await graph.ainvoke(
-                {"messages": [HumanMessage("remind me to call the dentist on June 30")], "thread_id": "test-reminder", "reply": ""},
+                {"messages": [HumanMessage("remind me to call the dentist on June 30")]},
                 config,
             )
 
             assert route.called
 
-    assert isinstance(result["reply"], str)
+    assert isinstance(result["messages"][-1].content, str)

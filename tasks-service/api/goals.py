@@ -7,7 +7,7 @@ from sqlmodel import Session, SQLModel, select
 
 from db.models import Goal, Habit, HabitLog, Task
 from db.session import get_session
-from domain.goals import goal_progress
+from domain.goals import get_goal_progress
 from domain.habits import find_week_bounds
 
 router = APIRouter(prefix="/goals", tags=["goals"])
@@ -94,7 +94,7 @@ def get_goal_progress(goal_id: uuid.UUID, session: Session = Depends(get_session
         logs = session.exec(select(HabitLog).where(HabitLog.habit_id == habit.id)).all()
         habits_with_logs.append((habit, logs))
 
-    progress = goal_progress(goal, habits_with_logs, tasks, week_start, week_end)
+    progress = get_goal_progress(goal, habits_with_logs, tasks, week_start, week_end)
 
     progress_by_habit_id = {item["id"]: item for item in progress["habits"]}
     habit_list = [

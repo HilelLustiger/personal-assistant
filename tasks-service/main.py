@@ -7,6 +7,11 @@ from api.tasks import router as tasks_router
 
 app = FastAPI(title="Tasks Service")
 
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 app.include_router(goals_router)
 app.include_router(habits_router)
 app.include_router(tasks_router)
