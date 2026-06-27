@@ -251,6 +251,7 @@ work_order:
     - id: T08
       assigned_to: coder
       component: orchestrator/telegram — Telegram bot handlers
+      status: complete
       description: >
         Wire the LangGraph agent to Telegram in orchestrator/bot/.
         handlers.py: handle incoming text messages — pass to agent/graph.py with
@@ -279,6 +280,7 @@ work_order:
     - id: T09
       assigned_to: coder
       component: orchestrator/proactive — scheduled trigger endpoints
+      status: complete
       description: >
         Implement orchestrator/proactive/triggers.py with three FastAPI POST endpoints.
         POST /trigger/morning: validate PROACTIVE_SECRET, call GET /tasks?completed=false

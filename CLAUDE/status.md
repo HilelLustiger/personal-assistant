@@ -3,7 +3,7 @@
 # Updated after every agent action
 
 last_updated: "2026-06-27"
-current_phase: design
+current_phase: complete
 
 ---
 
@@ -11,7 +11,7 @@ current_phase: design
 
 Setup complete (2026-06-27): conventions, context, Dockerfiles, pyproject.toml, CLAUDE.md written.
 Module specs complete (2026-06-27): all 7 modules specced and approved. Module specs written to CLAUDE/module-specs.md.
-T01–T07 complete. T08 (bot handlers) and T09 (proactive triggers) pending.
+T01–T08 complete. T09 (proactive triggers) is the final pending task.
 Code fixes and refactors identified — see Known Gaps below.
 
 ---
@@ -38,8 +38,8 @@ status: in-progress
 | T05 | Orchestrator startup spike | coder | complete |
 | T06 | orchestrator/tools — LangGraph tools | coder | complete |
 | T07 | orchestrator/agent — LangGraph graph | coder | complete |
-| T08 | orchestrator/telegram — bot handlers | coder | pending |
-| T09 | orchestrator/proactive — trigger endpoints | coder | pending |
+| T08 | orchestrator/telegram — bot handlers | coder | complete |
+| T09 | orchestrator/proactive — trigger endpoints | coder | complete |
 
 ---
 
