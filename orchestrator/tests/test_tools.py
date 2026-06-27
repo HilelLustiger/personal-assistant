@@ -1,4 +1,5 @@
 """T06 — LangGraph tool definitions wrapping tasks-service REST API."""
+
 import json
 import os
 
@@ -8,7 +9,6 @@ import httpx
 import pytest
 import respx
 from langchain_core.tools import BaseTool
-
 from tools.tasks_tool import (
     TASKS_SERVICE_URL,
     complete_task,
@@ -61,6 +61,7 @@ BASE = TASKS_SERVICE_URL
 
 # ── AC: all tools importable as LangGraph tools ───────────────────────────────
 
+
 def test_all_tools_are_langgraph_tools():
     for tool_instance in ALL_TOOLS:
         assert isinstance(tool_instance, BaseTool), f"{tool_instance} is not a BaseTool"
@@ -77,6 +78,7 @@ def test_tool_count():
 
 # ── AC: POST /tasks sends correct body and returns parsed response ─────────────
 
+
 @pytest.mark.asyncio
 async def test_create_task_sends_correct_body():
     task_response = {
@@ -88,7 +90,9 @@ async def test_create_task_sends_correct_body():
         "created_at": "2026-06-25T10:00:00",
     }
     with respx.mock(base_url=BASE) as mock:
-        route = mock.post("/tasks").mock(return_value=httpx.Response(201, json=task_response))
+        route = mock.post("/tasks").mock(
+            return_value=httpx.Response(201, json=task_response)
+        )
         result = await create_task.ainvoke({"title": "buy milk"})
 
         assert route.called
@@ -110,12 +114,16 @@ async def test_create_task_with_optional_fields():
         "created_at": "2026-06-25T10:00:00",
     }
     with respx.mock(base_url=BASE) as mock:
-        route = mock.post("/tasks").mock(return_value=httpx.Response(201, json=task_response))
-        result = await create_task.ainvoke({
-            "title": "sprint planning",
-            "due_datetime": "2026-06-30T09:00:00",
-            "goal_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
-        })
+        route = mock.post("/tasks").mock(
+            return_value=httpx.Response(201, json=task_response)
+        )
+        result = await create_task.ainvoke(
+            {
+                "title": "sprint planning",
+                "due_datetime": "2026-06-30T09:00:00",
+                "goal_id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+            }
+        )
 
         sent = json.loads(route.calls[0].request.content)
         assert sent["due_datetime"] == "2026-06-30T09:00:00"
@@ -124,6 +132,7 @@ async def test_create_task_with_optional_fields():
 
 
 # ── AC: GET /habits with date includes needs_log_today ────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_list_habits_with_date_includes_needs_log_today():
@@ -142,7 +151,9 @@ async def test_list_habits_with_date_includes_needs_log_today():
         }
     ]
     with respx.mock(base_url=BASE) as mock:
-        route = mock.get("/habits").mock(return_value=httpx.Response(200, json=habits_response))
+        route = mock.get("/habits").mock(
+            return_value=httpx.Response(200, json=habits_response)
+        )
         result = await list_habits.ainvoke({"active": True, "date": "2026-06-25"})
 
         assert route.called
@@ -170,7 +181,9 @@ async def test_list_habits_without_date_omits_computed_fields():
         }
     ]
     with respx.mock(base_url=BASE) as mock:
-        route = mock.get("/habits").mock(return_value=httpx.Response(200, json=habits_response))
+        route = mock.get("/habits").mock(
+            return_value=httpx.Response(200, json=habits_response)
+        )
         result = await list_habits.ainvoke({})
 
         params = dict(route.calls[0].request.url.params)
@@ -179,6 +192,7 @@ async def test_list_habits_without_date_omits_computed_fields():
 
 
 # ── AC: GET /goals/{id}/progress returns completion_rate per habit ─────────────
+
 
 @pytest.mark.asyncio
 async def test_get_goal_progress_returns_completion_rate():
@@ -218,6 +232,7 @@ async def test_get_goal_progress_returns_completion_rate():
 
 
 # ── Additional coverage: action endpoints ─────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_complete_task_posts_to_correct_url():

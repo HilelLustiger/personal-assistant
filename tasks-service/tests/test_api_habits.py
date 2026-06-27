@@ -1,5 +1,7 @@
 """API tests for /habits — T04."""
+
 import uuid
+
 import pytest
 
 
@@ -9,23 +11,29 @@ def goal_id(client):
 
 
 def _create_habit(client, goal_id, name="Run", frequency_target=3):
-    return client.post("/habits", json={
-        "name": name,
-        "goal_id": goal_id,
-        "frequency_target": frequency_target,
-        "frequency_unit": "weekly",
-        "start_date": "2026-06-01",
-    }).json()["id"]
+    return client.post(
+        "/habits",
+        json={
+            "name": name,
+            "goal_id": goal_id,
+            "frequency_target": frequency_target,
+            "frequency_unit": "weekly",
+            "start_date": "2026-06-01",
+        },
+    ).json()["id"]
 
 
 def test_create_habit(client, goal_id):
-    response = client.post("/habits", json={
-        "name": "Morning run",
-        "goal_id": goal_id,
-        "frequency_target": 3,
-        "frequency_unit": "weekly",
-        "start_date": "2026-06-01",
-    })
+    response = client.post(
+        "/habits",
+        json={
+            "name": "Morning run",
+            "goal_id": goal_id,
+            "frequency_target": 3,
+            "frequency_unit": "weekly",
+            "start_date": "2026-06-01",
+        },
+    )
     assert response.status_code == 201
     data = response.json()
     assert data["name"] == "Morning run"
@@ -112,7 +120,9 @@ def test_log_habit_not_found(client):
 
 def test_patch_habit(client, goal_id):
     habit_id = _create_habit(client, goal_id, name="Old", frequency_target=3)
-    response = client.patch(f"/habits/{habit_id}", json={"name": "New", "frequency_target": 5})
+    response = client.patch(
+        f"/habits/{habit_id}", json={"name": "New", "frequency_target": 5}
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == "New"

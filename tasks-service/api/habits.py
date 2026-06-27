@@ -3,12 +3,15 @@ from datetime import date as Date
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, SQLModel, select
-
 from db.models import Habit, HabitLog
 from db.session import get_session
-from domain.habits import count_completions_in_range, find_week_bounds, is_habit_hit_in_range
+from domain.habits import (
+    count_completions_in_range,
+    find_week_bounds,
+    is_habit_hit_in_range,
+)
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, SQLModel, select
 
 router = APIRouter(prefix="/habits", tags=["habits"])
 
@@ -69,7 +72,9 @@ def create_habit(data: HabitCreate, session: Session = Depends(get_session)):
 
 
 @router.patch("/{habit_id}")
-def update_habit(habit_id: uuid.UUID, data: HabitUpdate, session: Session = Depends(get_session)):
+def update_habit(
+    habit_id: uuid.UUID, data: HabitUpdate, session: Session = Depends(get_session)
+):
     habit = session.get(Habit, habit_id)
     if habit is None:
         raise HTTPException(status_code=404, detail="Habit not found")
@@ -86,18 +91,26 @@ def delete_habit(habit_id: uuid.UUID, session: Session = Depends(get_session)):
     habit = session.get(Habit, habit_id)
     if habit is None:
         raise HTTPException(status_code=404, detail="Habit not found")
-    for log in session.exec(select(HabitLog).where(HabitLog.habit_id == habit_id)).all():
+    for log in session.exec(
+        select(HabitLog).where(HabitLog.habit_id == habit_id)
+    ).all():
         session.delete(log)
     session.delete(habit)
     session.commit()
 
 
 @router.post("/{habit_id}/log", status_code=201)
-def log_habit(habit_id: uuid.UUID, data: HabitLogCreate, session: Session = Depends(get_session)):
+def log_habit(
+    habit_id: uuid.UUID, data: HabitLogCreate, session: Session = Depends(get_session)
+):
     habit = session.get(Habit, habit_id)
     if habit is None:
         raise HTTPException(status_code=404, detail="Habit not found")
-    log = HabitLog(habit_id=habit_id, completed_at=datetime.now(timezone.utc).replace(tzinfo=None), note=data.note)
+    log = HabitLog(
+        habit_id=habit_id,
+        completed_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        note=data.note,
+    )
     session.add(log)
     session.commit()
     session.refresh(log)

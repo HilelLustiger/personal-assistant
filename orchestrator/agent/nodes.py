@@ -1,19 +1,22 @@
 """LangGraph node functions: call_model, call_tools."""
+
 import json
 import os
 
 import litellm
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.utils.function_calling import convert_to_openai_tool
+from tools import ALL_TOOLS
 
 from agent.state import ConversationState
-from tools import ALL_TOOLS
 
 _MODEL = os.environ.get("GROQ_MODEL", "groq/llama-3.3-70b-versatile")
 _SYSTEM_PROMPT = (
-    "You are a personal assistant that helps manage tasks, habits, goals, and reminders. "
-    "Use the provided tools to fulfil the user's requests. "
-    "After any tool call, summarise the result in a friendly, concise message — never return raw JSON."
+    "You are a personal assistant that helps manage tasks, habits,"
+    " goals, and reminders."
+    " Use the provided tools to fulfil the user's requests."
+    " After any tool call, summarise the result in a friendly, concise message"
+    " — never return raw JSON."
 )
 _TOOLS_SCHEMA = [convert_to_openai_tool(t) for t in ALL_TOOLS]
 _TOOL_MAP = {t.name: t for t in ALL_TOOLS}
@@ -40,11 +43,13 @@ def _to_litellm_messages(messages: list) -> list[dict]:
                 ]
             result.append(entry)
         elif message.type == "tool":
-            result.append({
-                "role": "tool",
-                "content": str(message.content),
-                "tool_call_id": message.tool_call_id,
-            })
+            result.append(
+                {
+                    "role": "tool",
+                    "content": str(message.content),
+                    "tool_call_id": message.tool_call_id,
+                }
+            )
     return result
 
 
@@ -84,7 +89,5 @@ async def call_tools(state: ConversationState) -> dict:
                 content = json.dumps(result) if not isinstance(result, str) else result
             except Exception as exc:
                 content = f"Error calling {tool_call['name']}: {exc}"
-        tool_messages.append(
-            ToolMessage(content=content, tool_call_id=tool_call["id"])
-        )
+        tool_messages.append(ToolMessage(content=content, tool_call_id=tool_call["id"]))
     return {"messages": tool_messages}

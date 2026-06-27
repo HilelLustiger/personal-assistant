@@ -1,20 +1,27 @@
 import os
 
 # Must be before any app imports — db/session.py reads DATABASE_URL at module level
-_DEFAULT_TEST_DB = "postgresql+psycopg://postgres:postgres@localhost:5432/personal_assistant_test"
+_DEFAULT_TEST_DB = (
+    "postgresql+psycopg://postgres:postgres@localhost:5432/personal_assistant_test"
+)
 TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", _DEFAULT_TEST_DB)
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import text
-from sqlalchemy.engine import make_url
-from sqlalchemy.exc import ProgrammingError
-from sqlmodel import Session, SQLModel, create_engine
-
-from db.models import Goal, Habit, HabitLog, Reminder, Task  # noqa: F401 — registers all table metadata
-from db.session import engine
-from main import app
+import pytest  # noqa: E402
+from db.models import (  # noqa: E402, F401 — registers all table metadata
+    Goal,
+    Habit,
+    HabitLog,
+    Reminder,
+    Task,
+)
+from db.session import engine  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+from main import app  # noqa: E402
+from sqlalchemy import text  # noqa: E402
+from sqlalchemy.engine import make_url  # noqa: E402
+from sqlalchemy.exc import ProgrammingError  # noqa: E402
+from sqlmodel import Session, SQLModel, create_engine  # noqa: E402
 
 
 def _ensure_test_database_exists():

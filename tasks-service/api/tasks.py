@@ -3,11 +3,10 @@ from datetime import date as Date
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, SQLModel, select
-
 from db.models import Task
 from db.session import get_session
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, SQLModel, select
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -55,7 +54,9 @@ def create_task(data: TaskCreate, session: Session = Depends(get_session)):
 
 
 @router.patch("/{task_id}")
-def update_task(task_id: uuid.UUID, data: TaskUpdate, session: Session = Depends(get_session)):
+def update_task(
+    task_id: uuid.UUID, data: TaskUpdate, session: Session = Depends(get_session)
+):
     task = session.get(Task, task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")

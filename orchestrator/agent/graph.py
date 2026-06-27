@@ -1,4 +1,5 @@
 """LangGraph StateGraph for the personal assistant agent."""
+
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, StateGraph
 

@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from langgraph.checkpoint.base import empty_checkpoint
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from proactive.triggers import router as proactive_router
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
@@ -21,15 +22,14 @@ async def lifespan(app: FastAPI):
     telegram_app = None
 
     if TELEGRAM_BOT_TOKEN:
-        from telegram import Update
-        from telegram.ext import ApplicationBuilder, MessageHandler, filters
-
-        async def pong_handler(update: Update, context) -> None:
-            await update.message.reply_text("pong")
+        from bot.handlers import register_handlers
+        from bot.sender import set_bot
+        from telegram.ext import ApplicationBuilder
 
         telegram_app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-        telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, pong_handler))
+        register_handlers(telegram_app)
         await telegram_app.initialize()
+        set_bot(telegram_app.bot)
         await telegram_app.start()
         await telegram_app.updater.start_polling()
 
@@ -41,6 +41,8 @@ async def lifespan(app: FastAPI):
     async with AsyncPostgresSaver.from_conn_string(conn_string) as checkpointer:
         await checkpointer.setup()
         app.state.agent_graph = build_graph(checkpointer)
+        if telegram_app is not None:
+            telegram_app.bot_data["agent_graph"] = app.state.agent_graph
         try:
             yield
         finally:
@@ -51,6 +53,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Orchestrator", lifespan=lifespan)
+app.include_router(proactive_router)
 
 
 @app.get("/health")
@@ -80,6 +83,8 @@ def trigger_test():
         result = checkpointer.get_tuple(saved_config)
 
     if result is None:
-        raise HTTPException(status_code=500, detail="Checkpointer failed to persist state")
+        raise HTTPException(
+            status_code=500, detail="Checkpointer failed to persist state"
+        )
 
     return {"status": "ok"}

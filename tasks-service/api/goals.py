@@ -2,13 +2,12 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, SQLModel, select
-
 from db.models import Goal, Habit, HabitLog, Task
 from db.session import get_session
-from domain.goals import get_goal_progress
+from domain.goals import get_goal_progress as _compute_goal_progress
 from domain.habits import find_week_bounds
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, SQLModel, select
 
 router = APIRouter(prefix="/goals", tags=["goals"])
 
@@ -48,7 +47,9 @@ def create_goal(data: GoalCreate, session: Session = Depends(get_session)):
 
 
 @router.patch("/{goal_id}")
-def update_goal(goal_id: uuid.UUID, data: GoalUpdate, session: Session = Depends(get_session)):
+def update_goal(
+    goal_id: uuid.UUID, data: GoalUpdate, session: Session = Depends(get_session)
+):
     goal = session.get(Goal, goal_id)
     if goal is None:
         raise HTTPException(status_code=404, detail="Goal not found")
@@ -68,7 +69,9 @@ def delete_goal(goal_id: uuid.UUID, session: Session = Depends(get_session)):
     # Delete children in order: habit_logs → tasks → habits → goal
     habits = session.exec(select(Habit).where(Habit.goal_id == goal_id)).all()
     for habit in habits:
-        for log in session.exec(select(HabitLog).where(HabitLog.habit_id == habit.id)).all():
+        for log in session.exec(
+            select(HabitLog).where(HabitLog.habit_id == habit.id)
+        ).all():
             session.delete(log)
         session.delete(habit)
     for task in session.exec(select(Task).where(Task.goal_id == goal_id)).all():
@@ -94,7 +97,9 @@ def get_goal_progress(goal_id: uuid.UUID, session: Session = Depends(get_session
         logs = session.exec(select(HabitLog).where(HabitLog.habit_id == habit.id)).all()
         habits_with_logs.append((habit, logs))
 
-    progress = get_goal_progress(goal, habits_with_logs, tasks, week_start, week_end)
+    progress = _compute_goal_progress(
+        goal, habits_with_logs, tasks, week_start, week_end
+    )
 
     progress_by_habit_id = {item["id"]: item for item in progress["habits"]}
     habit_list = [
@@ -103,7 +108,9 @@ def get_goal_progress(goal_id: uuid.UUID, session: Session = Depends(get_session
             "name": habit.name,
             "frequency_target": habit.frequency_target,
             "frequency_unit": habit.frequency_unit,
-            "completions_this_week": progress_by_habit_id[habit.id]["completions_in_range"],
+            "completions_this_week": progress_by_habit_id[habit.id][
+                "completions_in_range"
+            ],
             "completion_rate": progress_by_habit_id[habit.id]["completion_rate"],
         }
         for habit in habits

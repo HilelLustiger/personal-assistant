@@ -1,4 +1,5 @@
 """Tests for domain/goals.py."""
+
 import uuid
 from datetime import datetime
 
@@ -7,23 +8,26 @@ def _make_goal():
     class G:
         id = uuid.uuid4()
         name = "Test Goal"
+
     return G()
 
 
 def _make_task(completed_at=None):
     class T:
         pass
+
     t = T()
     t.completed_at = completed_at
     return t
 
 
-WEEK_START = datetime(2026, 6, 21, 0, 0, 0)    # Sunday
-WEEK_END   = datetime(2026, 6, 27, 23, 59, 59)  # Saturday
+WEEK_START = datetime(2026, 6, 21, 0, 0, 0)  # Sunday
+WEEK_END = datetime(2026, 6, 27, 23, 59, 59)  # Saturday
 
 
 def test_get_goal_progress_completion_rate_capped_at_one():
     from domain.goals import get_goal_progress
+
     goal = _make_goal()
     h_id = uuid.uuid4()
 
@@ -43,6 +47,7 @@ def test_get_goal_progress_completion_rate_capped_at_one():
 
 def test_get_goal_progress_partial_rate():
     from domain.goals import get_goal_progress
+
     goal = _make_goal()
     h_id = uuid.uuid4()
 
@@ -62,6 +67,7 @@ def test_get_goal_progress_partial_rate():
 
 def test_get_goal_progress_tasks_completed_and_total():
     from domain.goals import get_goal_progress
+
     goal = _make_goal()
     tasks = [
         _make_task(completed_at=datetime(2026, 6, 22, 9, 0)),
@@ -75,6 +81,7 @@ def test_get_goal_progress_tasks_completed_and_total():
 
 def test_get_goal_progress_empty():
     from domain.goals import get_goal_progress
+
     goal = _make_goal()
     result = get_goal_progress(goal, [], [], WEEK_START, WEEK_END)
     assert result["habits"] == []
@@ -84,6 +91,7 @@ def test_get_goal_progress_empty():
 
 def test_get_goal_progress_excludes_logs_outside_range():
     from domain.goals import get_goal_progress
+
     goal = _make_goal()
     h_id = uuid.uuid4()
 

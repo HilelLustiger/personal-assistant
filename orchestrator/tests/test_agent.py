@@ -1,25 +1,27 @@
 """T07 — LangGraph agent: graph + state persistence."""
+
 import json
 import os
 
 os.environ.setdefault("TASKS_SERVICE_URL", "http://tasks-service:8001")
 os.environ.setdefault("GROQ_API_KEY", "test-key")
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
 import pytest
 import respx
+from agent.graph import build_graph
 from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.memory import MemorySaver
-from unittest.mock import AsyncMock, MagicMock, patch
-
-from agent.graph import build_graph
-from agent.state import ConversationState
 from tools.tasks_tool import TASKS_SERVICE_URL
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _make_tool_call_response(tool_name: str, tool_args: dict, call_id: str = "call_001"):
+
+def _make_tool_call_response(
+    tool_name: str, tool_args: dict, call_id: str = "call_001"
+):
     tc = MagicMock()
     tc.id = call_id
     tc.function.name = tool_name
@@ -59,6 +61,7 @@ BASE = TASKS_SERVICE_URL
 
 # ── AC: 'add task: buy milk' → POST /tasks ────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_create_task_calls_tasks_service():
     task_response = {
@@ -77,9 +80,13 @@ async def test_create_task_calls_tasks_service():
     graph = build_graph()
     config = _make_config("test-create-task")
 
-    with patch("agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)):
+    with patch(
+        "agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)
+    ):
         with respx.mock(base_url=BASE) as mock:
-            route = mock.post("/tasks").mock(return_value=httpx.Response(201, json=task_response))
+            route = mock.post("/tasks").mock(
+                return_value=httpx.Response(201, json=task_response)
+            )
 
             result = await graph.ainvoke(
                 {"messages": [HumanMessage("add task: buy milk")]},
@@ -95,6 +102,7 @@ async def test_create_task_calls_tasks_service():
 
 
 # ── AC: 'show my open tasks' → GET /tasks?completed=false ────────────────────
+
 
 @pytest.mark.asyncio
 async def test_list_open_tasks_sends_correct_query():
@@ -116,9 +124,13 @@ async def test_list_open_tasks_sends_correct_query():
     graph = build_graph()
     config = _make_config("test-list-tasks")
 
-    with patch("agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)):
+    with patch(
+        "agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)
+    ):
         with respx.mock(base_url=BASE) as mock:
-            route = mock.get("/tasks").mock(return_value=httpx.Response(200, json=tasks_response))
+            route = mock.get("/tasks").mock(
+                return_value=httpx.Response(200, json=tasks_response)
+            )
 
             result = await graph.ainvoke(
                 {"messages": [HumanMessage("show my open tasks")]},
@@ -133,6 +145,7 @@ async def test_list_open_tasks_sends_correct_query():
 
 
 # ── AC: two sequential messages share state via checkpointer ─────────────────
+
 
 @pytest.mark.asyncio
 async def test_sequential_messages_share_state():
@@ -152,22 +165,30 @@ async def test_sequential_messages_share_state():
         _make_text_response("You have 1 open task: call doctor."),
     ]
     second_turn_effects = [
-        _make_text_response("Yes, I remember — I listed your tasks just now. call doctor is still open."),
+        _make_text_response(
+            "Yes, I remember — I listed your tasks just now. call doctor is still open."
+        ),
     ]
 
     checkpointer = MemorySaver()
     graph = build_graph(checkpointer=checkpointer)
     config = _make_config("test-sequential")
 
-    with patch("agent.nodes.litellm.acompletion", AsyncMock(side_effect=first_turn_effects)):
+    with patch(
+        "agent.nodes.litellm.acompletion", AsyncMock(side_effect=first_turn_effects)
+    ):
         with respx.mock(base_url=BASE) as mock:
-            mock.get("/tasks").mock(return_value=httpx.Response(200, json=tasks_response))
+            mock.get("/tasks").mock(
+                return_value=httpx.Response(200, json=tasks_response)
+            )
             await graph.ainvoke(
                 {"messages": [HumanMessage("show my open tasks")]},
                 config,
             )
 
-    with patch("agent.nodes.litellm.acompletion", AsyncMock(side_effect=second_turn_effects)) as mock_llm:
+    with patch(
+        "agent.nodes.litellm.acompletion", AsyncMock(side_effect=second_turn_effects)
+    ) as mock_llm:
         result = await graph.ainvoke(
             {"messages": [HumanMessage("do you remember what you said?")]},
             config,
@@ -181,6 +202,7 @@ async def test_sequential_messages_share_state():
 
 
 # ── AC: agent returns formatted reply string, not raw JSON ───────────────────
+
 
 @pytest.mark.asyncio
 async def test_reply_is_human_readable_string():
@@ -200,9 +222,13 @@ async def test_reply_is_human_readable_string():
     graph = build_graph()
     config = _make_config("test-reply-format")
 
-    with patch("agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)):
+    with patch(
+        "agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)
+    ):
         with respx.mock(base_url=BASE) as mock:
-            mock.post("/tasks").mock(return_value=httpx.Response(201, json=task_response))
+            mock.post("/tasks").mock(
+                return_value=httpx.Response(201, json=task_response)
+            )
             result = await graph.ainvoke(
                 {"messages": [HumanMessage("add dentist appointment")]},
                 config,
@@ -219,6 +245,7 @@ async def test_reply_is_human_readable_string():
 
 
 # ── AC: complete_task routes to correct endpoint ──────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_complete_task_routes_to_correct_endpoint():
@@ -239,9 +266,13 @@ async def test_complete_task_routes_to_correct_endpoint():
     graph = build_graph()
     config = _make_config("test-complete-task")
 
-    with patch("agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)):
+    with patch(
+        "agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)
+    ):
         with respx.mock(base_url=BASE) as mock:
-            route = mock.post(f"/tasks/{task_id}/complete").mock(return_value=httpx.Response(200, json=task_response))
+            route = mock.post(f"/tasks/{task_id}/complete").mock(
+                return_value=httpx.Response(200, json=task_response)
+            )
 
             result = await graph.ainvoke(
                 {"messages": [HumanMessage(f"complete task {task_id}")]},
@@ -255,6 +286,7 @@ async def test_complete_task_routes_to_correct_endpoint():
 
 
 # ── AC: create_reminder tool works ────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_create_reminder_calls_correct_endpoint():
@@ -270,18 +302,28 @@ async def test_create_reminder_calls_correct_endpoint():
             "create_reminder",
             {"title": "call dentist", "trigger_datetime": "2026-06-30T09:00:00"},
         ),
-        _make_text_response("Reminder set! I'll remind you to call the dentist on June 30th."),
+        _make_text_response(
+            "Reminder set! I'll remind you to call the dentist on June 30th."
+        ),
     ]
 
     graph = build_graph()
     config = _make_config("test-create-reminder")
 
-    with patch("agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)):
+    with patch(
+        "agent.nodes.litellm.acompletion", AsyncMock(side_effect=llm_side_effects)
+    ):
         with respx.mock(base_url=BASE) as mock:
-            route = mock.post("/reminders").mock(return_value=httpx.Response(201, json=reminder_response))
+            route = mock.post("/reminders").mock(
+                return_value=httpx.Response(201, json=reminder_response)
+            )
 
             result = await graph.ainvoke(
-                {"messages": [HumanMessage("remind me to call the dentist on June 30")]},
+                {
+                    "messages": [
+                        HumanMessage("remind me to call the dentist on June 30")
+                    ]
+                },
                 config,
             )
 

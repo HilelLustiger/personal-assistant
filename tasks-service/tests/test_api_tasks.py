@@ -1,4 +1,5 @@
 """API tests for /tasks — T04."""
+
 import uuid
 
 
@@ -22,7 +23,9 @@ def test_list_tasks_returns_all(client):
 
 def test_list_tasks_filter_completed_false(client):
     open_task_id = client.post("/tasks", json={"title": "Open task"}).json()["id"]
-    completed_task_id = client.post("/tasks", json={"title": "Completed task"}).json()["id"]
+    completed_task_id = client.post("/tasks", json={"title": "Completed task"}).json()[
+        "id"
+    ]
     client.post(f"/tasks/{completed_task_id}/complete")
 
     response = client.get("/tasks?completed=false")
@@ -34,7 +37,9 @@ def test_list_tasks_filter_completed_false(client):
 
 def test_list_tasks_filter_completed_true(client):
     client.post("/tasks", json={"title": "Open task"})
-    completed_task_id = client.post("/tasks", json={"title": "Completed task"}).json()["id"]
+    completed_task_id = client.post("/tasks", json={"title": "Completed task"}).json()[
+        "id"
+    ]
     client.post(f"/tasks/{completed_task_id}/complete")
 
     response = client.get("/tasks?completed=true")
@@ -44,8 +49,12 @@ def test_list_tasks_filter_completed_true(client):
 
 
 def test_list_tasks_filter_due_by(client):
-    client.post("/tasks", json={"title": "Due today", "due_datetime": "2026-06-23T09:00:00"})
-    client.post("/tasks", json={"title": "Due next week", "due_datetime": "2026-06-30T09:00:00"})
+    client.post(
+        "/tasks", json={"title": "Due today", "due_datetime": "2026-06-23T09:00:00"}
+    )
+    client.post(
+        "/tasks", json={"title": "Due next week", "due_datetime": "2026-06-30T09:00:00"}
+    )
     client.post("/tasks", json={"title": "No due date"})
 
     response = client.get("/tasks?due_by=2026-06-23")

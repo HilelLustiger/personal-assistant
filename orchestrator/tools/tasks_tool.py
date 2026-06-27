@@ -3,6 +3,7 @@
 Each tool's docstring is what the LLM reads to decide which tool to call.
 No business logic lives here — tools are thin HTTP wrappers.
 """
+
 import os
 from typing import Optional
 
@@ -85,8 +86,8 @@ async def update_goal(
 
 @tool
 async def delete_goal(goal_id: str) -> dict:
-    """Delete a goal and all its habits, tasks, and logs permanently. This is irreversible.
-    Use only when the user explicitly asks to remove a goal."""
+    """Delete a goal and all its habits, tasks, and logs permanently.
+    This is irreversible. Use only when the user explicitly asks to remove a goal."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         response = await client.delete(f"/goals/{goal_id}")
         response.raise_for_status()
@@ -95,9 +96,9 @@ async def delete_goal(goal_id: str) -> dict:
 
 @tool
 async def get_goal_progress(goal_id: str) -> dict:
-    """Get a goal's progress: habit completion rates this week and task completion counts.
-    Returns completion_rate per habit (completions_this_week / frequency_target, capped at 1.0)
-    plus tasks_completed and tasks_total under this goal."""
+    """Get a goal's progress: habit completion rates this week and task counts.
+    Returns completion_rate per habit (completions_this_week / frequency_target,
+    capped at 1.0) plus tasks_completed and tasks_total under this goal."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         response = await client.get(f"/goals/{goal_id}/progress")
         response.raise_for_status()
@@ -113,9 +114,9 @@ async def list_tasks(
     due_by: Optional[str] = None,
     due_from: Optional[str] = None,
 ) -> list:
-    """List tasks. Filter by completion status (completed=True for done, False for open),
-    due date range (due_by=YYYY-MM-DD for tasks due on or before that date,
-    due_from=YYYY-MM-DD for tasks due on or after). Omit all to get everything."""
+    """List tasks. Filter by completion status (completed=True for done, False for
+    open), due date range (due_by=YYYY-MM-DD for tasks due on or before that date,
+    due_from=YYYY-MM-DD for on or after). Omit all to get everything."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         params: dict = {}
         if completed is not None:
@@ -173,7 +174,8 @@ async def update_task(
 
 @tool
 async def delete_task(task_id: str) -> dict:
-    """Delete a task permanently. Use only when the user explicitly wants to remove a task."""
+    """Delete a task permanently.
+    Use only when the user explicitly wants to remove a task."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         response = await client.delete(f"/tasks/{task_id}")
         response.raise_for_status()
@@ -246,8 +248,9 @@ async def update_habit(
     active: Optional[bool] = None,
 ) -> dict:
     """Update an existing habit's name, frequency, or active status.
-    frequency_unit is 'daily' or 'weekly'. Set active=False to pause a habit without deleting it.
-    Provide only the fields to change; unmentioned fields stay the same."""
+    frequency_unit is 'daily' or 'weekly'. Set active=False to pause a habit
+    without deleting it. Provide only the fields to change; unmentioned fields stay
+    the same."""
     payload: dict = {}
     if name is not None:
         payload["name"] = name
@@ -295,8 +298,8 @@ async def list_reminders(
     due_by: Optional[str] = None,
 ) -> list:
     """List reminders. Pass fired=False to get only unfired reminders;
-    fired=True for already-fired ones. Pass due_by=ISO8601-datetime to filter by due time.
-    Omit all params to list everything."""
+    fired=True for already-fired ones. Pass due_by=ISO8601-datetime to filter by
+    due time. Omit all params to list everything."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         params: dict = {}
         if fired is not None:
@@ -341,7 +344,8 @@ async def update_reminder(
 
 @tool
 async def delete_reminder(reminder_id: str) -> dict:
-    """Delete a reminder permanently. Use when the user no longer needs a scheduled reminder."""
+    """Delete a reminder permanently.
+    Use when the user no longer needs a scheduled reminder."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         response = await client.delete(f"/reminders/{reminder_id}")
         response.raise_for_status()

@@ -26,7 +26,9 @@ class Goal(SQLModel, table=True):
     description: Optional[str] = None
     status: GoalStatus = Field(default=GoalStatus.active)
     target_date: Optional[datetime] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
 
 
 class Habit(SQLModel, table=True):
@@ -39,7 +41,9 @@ class Habit(SQLModel, table=True):
     frequency_unit: FrequencyUnit
     start_date: date
     active: bool = True
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
 
 
 class HabitLog(SQLModel, table=True):
@@ -59,7 +63,9 @@ class Task(SQLModel, table=True):
     title: str
     due_datetime: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
 
 
 class Reminder(SQLModel, table=True):
@@ -69,4 +75,6 @@ class Reminder(SQLModel, table=True):
     title: str
     trigger_datetime: datetime
     fired_at: Optional[datetime] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )

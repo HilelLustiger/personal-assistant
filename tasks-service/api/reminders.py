@@ -2,11 +2,10 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, SQLModel, select
-
 from db.models import Reminder
 from db.session import get_session
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, SQLModel, select
 
 router = APIRouter(prefix="/reminders", tags=["reminders"])
 
@@ -47,7 +46,11 @@ def create_reminder(data: ReminderCreate, session: Session = Depends(get_session
 
 
 @router.patch("/{reminder_id}")
-def update_reminder(reminder_id: uuid.UUID, data: ReminderUpdate, session: Session = Depends(get_session)):
+def update_reminder(
+    reminder_id: uuid.UUID,
+    data: ReminderUpdate,
+    session: Session = Depends(get_session),
+):
     reminder = session.get(Reminder, reminder_id)
     if reminder is None:
         raise HTTPException(status_code=404, detail="Reminder not found")

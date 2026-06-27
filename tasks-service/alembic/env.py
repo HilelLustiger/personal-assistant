@@ -1,10 +1,8 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 config = context.config
 
@@ -15,10 +13,13 @@ database_url = os.environ.get("DATABASE_URL")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 
-import sys, pathlib
+import pathlib  # noqa: E402
+import sys  # noqa: E402
+
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
-from db.models import SQLModel  # noqa: F401 — registers all table metadata
+from db.models import SQLModel  # noqa: E402, F401 — registers all table metadata
+
 target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -65,9 +66,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
