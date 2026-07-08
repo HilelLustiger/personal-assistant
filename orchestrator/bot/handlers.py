@@ -1,3 +1,5 @@
+import logging
+
 from langchain_core.messages import HumanMessage
 from telegram import Update
 from telegram.ext import (
@@ -9,6 +11,8 @@ from telegram.ext import (
 )
 
 from bot import sender
+
+logger = logging.getLogger(__name__)
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -26,6 +30,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         )
         reply = result["messages"][-1].content
     except Exception:
+        logger.exception("Error handling message from chat_id=%s", chat_id)
         reply = "Sorry, something went wrong. Please try again."
 
     await sender.send_message(chat_id, reply)
