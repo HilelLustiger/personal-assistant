@@ -36,9 +36,9 @@ async def trigger_morning(request: TriggerRequest) -> dict:
 
     if tasks:
         lines = [f"- {task['title']}" for task in tasks]
-        text = "Good morning! Here are your tasks for today:\n" + "\n".join(lines)
+        text = "בוקר טוב! אלו המשימות שלך להיום:\n" + "\n".join(lines)
     else:
-        text = "Good morning! No tasks due today. Enjoy your day!"
+        text = "בוקר טוב! אין משימות להיום. תהיה לך יום נעים!"
 
     await sender.send_message(chat_id, text)
     return {"status": "ok"}
@@ -59,7 +59,7 @@ async def trigger_eod(request: TriggerRequest) -> dict:
 
     if habits_needing_log:
         lines = [f"- {habit['name']}" for habit in habits_needing_log]
-        text = "End of day check-in! Did you complete these habits?\n" + "\n".join(
+        text = "צ'ק-אין סוף יום! האם השלמת את ההרגלים האלה?\n" + "\n".join(
             lines
         )
         buttons = [
@@ -73,7 +73,7 @@ async def trigger_eod(request: TriggerRequest) -> dict:
         ]
         await sender.send_message_with_buttons(chat_id, text, buttons)
     else:
-        text = "End of day check-in! All habits logged for today. Great work!"
+        text = "צ'ק-אין סוף יום! כל ההרגלים תועדו להיום. כל הכבוד!"
         await sender.send_message(chat_id, text)
 
     return {"status": "ok"}
@@ -93,7 +93,7 @@ async def trigger_check_reminders(request: TriggerRequest) -> dict:
         reminders = response.json()
 
         for reminder in reminders:
-            await sender.send_message(chat_id, f"Reminder: {reminder['title']}")
+            await sender.send_message(chat_id, f"תזכורת: {reminder['title']}")
             await client.post(f"/reminders/{reminder['id']}/fire", json={})
 
     return {"status": "ok"}
