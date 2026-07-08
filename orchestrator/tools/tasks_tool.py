@@ -110,17 +110,17 @@ async def get_goal_progress(goal_id: str) -> dict:
 
 @tool
 async def list_tasks(
-    completed: Optional[bool] = None,
+    completed: Optional[str] = None,
     due_by: Optional[str] = None,
     due_from: Optional[str] = None,
 ) -> list:
-    """List tasks. Filter by completion status (completed=True for done, False for
+    """List tasks. Filter by completion status (completed='true' for done, 'false' for
     open), due date range (due_by=YYYY-MM-DD for tasks due on or before that date,
     due_from=YYYY-MM-DD for on or after). Omit all to get everything."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         params: dict = {}
         if completed is not None:
-            params["completed"] = str(completed).lower()
+            params["completed"] = completed
         if due_by is not None:
             params["due_by"] = due_by
         if due_from is not None:
@@ -198,16 +198,16 @@ async def complete_task(task_id: str) -> dict:
 
 @tool
 async def list_habits(
-    active: Optional[bool] = None,
+    active: Optional[str] = None,
     date: Optional[str] = None,
 ) -> list:
-    """List habits. Pass active=True/False to filter by active status.
+    """List habits. Pass active='true'/'false' to filter by active status.
     Pass date=YYYY-MM-DD to get computed fields per habit: needs_log_today (bool)
     and completions_this_week (int). Omit date to skip computed fields."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         params: dict = {}
         if active is not None:
-            params["active"] = str(active).lower()
+            params["active"] = active
         if date is not None:
             params["date"] = date
         response = await client.get("/habits", params=params)
@@ -245,10 +245,10 @@ async def update_habit(
     name: Optional[str] = None,
     frequency_target: Optional[int] = None,
     frequency_unit: Optional[str] = None,
-    active: Optional[bool] = None,
+    active: Optional[str] = None,
 ) -> dict:
     """Update an existing habit's name, frequency, or active status.
-    frequency_unit is 'daily' or 'weekly'. Set active=False to pause a habit
+    frequency_unit is 'daily' or 'weekly'. Set active='false' to pause a habit
     without deleting it. Provide only the fields to change; unmentioned fields stay
     the same."""
     payload: dict = {}
@@ -259,7 +259,7 @@ async def update_habit(
     if frequency_unit is not None:
         payload["frequency_unit"] = frequency_unit
     if active is not None:
-        payload["active"] = active
+        payload["active"] = active.lower() == "true"
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         response = await client.patch(f"/habits/{habit_id}", json=payload)
         response.raise_for_status()
@@ -294,16 +294,16 @@ async def log_habit(habit_id: str, note: Optional[str] = None) -> dict:
 
 @tool
 async def list_reminders(
-    fired: Optional[bool] = None,
+    fired: Optional[str] = None,
     due_by: Optional[str] = None,
 ) -> list:
-    """List reminders. Pass fired=False to get only unfired reminders;
-    fired=True for already-fired ones. Pass due_by=ISO8601-datetime to filter by
+    """List reminders. Pass fired='false' to get only unfired reminders;
+    fired='true' for already-fired ones. Pass due_by=ISO8601-datetime to filter by
     due time. Omit all params to list everything."""
     async with httpx.AsyncClient(base_url=TASKS_SERVICE_URL) as client:
         params: dict = {}
         if fired is not None:
-            params["fired"] = str(fired).lower()
+            params["fired"] = fired
         if due_by is not None:
             params["due_by"] = due_by
         response = await client.get("/reminders", params=params)
