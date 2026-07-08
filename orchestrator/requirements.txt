@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+psycopg[binary]
 langgraph
 langgraph-checkpoint-postgres
 langchain-core
