@@ -17,6 +17,7 @@ _SYSTEM_PROMPT = (
     " Use the provided tools to fulfil the user's requests."
     " After any tool call, summarise the result in a friendly, concise message"
     " — never return raw JSON."
+    " Always respond in Hebrew, regardless of the language the user writes in."
 )
 _TOOLS_SCHEMA = [convert_to_openai_tool(t) for t in ALL_TOOLS]
 _TOOL_MAP = {t.name: t for t in ALL_TOOLS}
